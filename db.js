@@ -4,13 +4,13 @@ require('dotenv').config();
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false // Vital para conexiones remotas a Neon
+    rejectUnauthorized: false // Vital para mantener la conexión segura con Neon
   }
 });
 
-// ESTO EVITA QUE EL SERVIDOR SE CAIGA CUANDO NEON CIERRA UNA CONEXIÓN INACTIVA
+// ESTO EVITA QUE EL SERVIDOR SE APAGUE CUANDO NEON CIERRA UNA CONEXIÓN INACTIVA
 pool.on('error', (err, client) => {
-  console.error('Error inesperado en el cliente de base de datos', err);
+  console.error('Error inesperado en la base de datos:', err);
 });
 
 module.exports = pool;
