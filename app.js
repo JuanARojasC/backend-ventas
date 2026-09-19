@@ -8,6 +8,7 @@ var app = express();
 app.use(cors());
 app.use(express.json());
 
+// --- CLIENTES ---
 app.get('/clientes', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM clientes');
@@ -17,6 +18,20 @@ app.get('/clientes', async (req, res) => {
   }
 });
 
+app.post('/clientes', async (req, res) => {
+  try {
+    const { nomcliente, contacto, departamento, ciudad } = req.body;
+    const result = await db.query(
+      'INSERT INTO clientes (nomcliente, contacto, departamento, ciudad) VALUES ($1, $2, $3, $4) RETURNING *',
+      [nomcliente, contacto, departamento, ciudad]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- PRODUCTOS ---
 app.get('/productos', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM productos');
@@ -26,57 +41,6 @@ app.get('/productos', async (req, res) => {
   }
 });
 
-app.get('/ventas', async (req, res) => {
-  try {
-    const result = await db.query('SELECT * FROM ventas');
-    res.json(result.rows);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-app.get('/detalle-venta', async (req, res) => {
-  try {
-    const result = await db.query('SELECT * FROM detalle_venta');
-    res.json(result.rows);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// --- RUTAS PARA PRODUCTOS ---
-
-// Editar producto
-app.put('/productos/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { nomproducto, cantidad, precio } = req.body;
-    
-    // Ejecutamos el UPDATE en PostgreSQL
-    await db.query(
-      'UPDATE productos SET nomproducto = $1, cantidad = $2, precio = $3 WHERE id_producto = $4',
-      [nomproducto, cantidad, precio, id]
-    );
-    
-    res.json({ message: 'Producto actualizado correctamente' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Eliminar producto
-app.delete('/productos/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    // Ejecutamos el DELETE en PostgreSQL
-    await db.query('DELETE FROM productos WHERE id_producto = $1', [id]);
-    
-    res.json({ message: 'Producto eliminado correctamente' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-// --- CREAR PRODUCTO ---
 app.post('/productos', async (req, res) => {
   try {
     const { nomproducto, cantidad, precio } = req.body;
@@ -90,17 +54,74 @@ app.post('/productos', async (req, res) => {
   }
 });
 
-// --- CREAR CLIENTE ---
-app.post('/clientes', async (req, res) => {
+app.put('/productos/:id', async (req, res) => {
   try {
-    const { nomcliente, contacto, departamento, ciudad } = req.body;
+    const { id } = req.params;
+    const { nomproducto, cantidad, precio } = req.body;
+    await db.query(
+      'UPDATE productos SET nomproducto = $1, cantidad = $2, precio = $3 WHERE id_producto = $4',
+      [nomproducto, cantidad, precio, id]
+    );
+    res.json({ message: 'Producto actualizado correctamente' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/productos/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.query('DELETE FROM productos WHERE id_producto = $1', [id]);
+    res.json({ message: 'Producto eliminado correctamente' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- VENTAS ---
+app.get('/ventas', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM ventas');
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/ventas', async (req, res) => {
+  try {
+    const { id_cliente, fecha_venta, total, estado } = req.body;
     const result = await db.query(
-      'INSERT INTO clientes (nomcliente, contacto, departamento, ciudad) VALUES ($1, $2, $3, $4) RETURNING *',
-      [nomcliente, contacto, departamento, ciudad]
+      'INSERT INTO ventas (id_cliente, fecha_venta, total, estado) VALUES ($1, $2, $3, $4) RETURNING *',
+      [id_cliente, fecha_venta, total, estado]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
+// --- DETALLE VENTA ---
+app.get('/detalle-venta', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM detalle_venta');
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/detalle-venta', async (req, res) => {
+  try {
+    const { id_venta, id_producto, cantidad, precio_unitario, subtotal } = req.body;
+    const result = await db.query(
+      'INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario, subtotal) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [id_venta, id_producto, cantidad, precio_unitario, subtotal]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = app;
