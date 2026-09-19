@@ -76,5 +76,31 @@ app.delete('/productos/:id', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+// --- CREAR PRODUCTO ---
+app.post('/productos', async (req, res) => {
+  try {
+    const { nomproducto, cantidad, precio } = req.body;
+    const result = await db.query(
+      'INSERT INTO productos (nomproducto, cantidad, precio) VALUES ($1, $2, $3) RETURNING *',
+      [nomproducto, cantidad, precio]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
+// --- CREAR CLIENTE ---
+app.post('/clientes', async (req, res) => {
+  try {
+    const { nomcliente, contacto, departamento, ciudad } = req.body;
+    const result = await db.query(
+      'INSERT INTO clientes (nomcliente, contacto, departamento, ciudad) VALUES ($1, $2, $3, $4) RETURNING *',
+      [nomcliente, contacto, departamento, ciudad]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 module.exports = app;
