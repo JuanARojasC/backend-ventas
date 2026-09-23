@@ -1,9 +1,9 @@
 require('dotenv').config();
-var express = require('express');
+const express = require('express');
 const cors = require('cors');
-var db = require('./db');
+const db = require('./db');
 
-var app = express();
+const app = express();
 
 app.use(cors());
 app.use(express.json());
@@ -17,7 +17,6 @@ app.get('/clientes', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 app.post('/clientes', async (req, res) => {
   try {
     const { nomcliente, contacto, departamento, ciudad } = req.body;
@@ -40,7 +39,6 @@ app.get('/productos', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 app.post('/productos', async (req, res) => {
   try {
     const { nomproducto, cantidad, precio } = req.body;
@@ -49,30 +47,6 @@ app.post('/productos', async (req, res) => {
       [nomproducto, cantidad, precio]
     );
     res.status(201).json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.put('/productos/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { nomproducto, cantidad, precio } = req.body;
-    await db.query(
-      'UPDATE productos SET nomproducto = $1, cantidad = $2, precio = $3 WHERE id_producto = $4',
-      [nomproducto, cantidad, precio, id]
-    );
-    res.json({ message: 'Producto actualizado correctamente' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.delete('/productos/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    await db.query('DELETE FROM productos WHERE id_producto = $1', [id]);
-    res.json({ message: 'Producto eliminado correctamente' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -87,7 +61,6 @@ app.get('/ventas', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 app.post('/ventas', async (req, res) => {
   try {
     const { id_cliente, fecha_venta, total, estado } = req.body;
@@ -110,7 +83,6 @@ app.get('/detalle-venta', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 app.post('/detalle-venta', async (req, res) => {
   try {
     const { id_venta, id_producto, cantidad, precio_unitario, subtotal } = req.body;
@@ -124,5 +96,7 @@ app.post('/detalle-venta', async (req, res) => {
   }
 });
 
-
-module.exports = app;
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en el puerto ${PORT}`);
+});
